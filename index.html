@@ -98,13 +98,22 @@
   </div>
 </div>
 <script>
-// Динамічне завантаження lib
-async function loadScript(src) {
+async function loadScript(src, fallbackSrc = null) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = src;
     script.onload = () => resolve(script);
-    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+    script.onerror = () => {
+      if (fallbackSrc) {
+        const fallback = document.createElement('script');
+        fallback.src = fallbackSrc;
+        fallback.onload = () => resolve(fallback);
+        fallback.onerror = () => reject(new Error(`Failed to load ${src} and fallback`));
+        document.head.appendChild(fallback);
+      } else {
+        reject(new Error(`Failed to load ${src}`));
+      }
+    };
     document.head.appendChild(script);
   });
 }
@@ -114,16 +123,15 @@ async function initApp() {
     await Promise.all([
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js'),
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'),
-      loadScript('https://unpkg.com/three@0.181.0/build/three.min.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.min.js', 'https://cdn.jsdelivr.net/npm/three/build/three.min.js'),
       loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js')
     ]);
     
     if (typeof Pose === 'undefined' || typeof THREE === 'undefined') {
-      throw new Error('Libraries failed to load. Check connection or CDN.');
+      throw new Error('Libraries failed to load. Check connection or AdBlock.');
     }
     console.log('All libraries loaded successfully!');
-    
-    // Основний код
+
     const sockPNGs = ['sock1.png', 'sock2.png', 'sock3.png'];
     const video = document.getElementById('camera');
     const threeCanvas = document.getElementById('three-canvas');
@@ -139,11 +147,10 @@ async function initApp() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio || 1);
-    renderer.setClearColor(0x000000, 0);  // ФІКС: прозорий фон
+    renderer.setClearColor(0x000000, 0);
     const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.9);
     scene.add(hemi);
 
-    // Шкарпетка
     let sockGroup = new THREE.Group();
     const fallbackColors = [0xff6b6b, 0x4ecdc4, 0xffeb3b];
     let sockMaterial = new THREE.MeshBasicMaterial({
@@ -164,7 +171,7 @@ async function initApp() {
     toe.rotation.x = Math.PI;
     sockGroup.add(leg, toe);
     sockGroup.scale.x = -1;
-    sockGroup.visible = false;  // Початково прихована
+    sockGroup.visible = false;
     scene.add(sockGroup);
 
     let texLoader = new THREE.TextureLoader();
@@ -201,7 +208,6 @@ async function initApp() {
     }
     loadDesign(0);
 
-    // Resize
     function resize() {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -220,14 +226,12 @@ async function initApp() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Координати
     function mpToThree(x, y) {
       const nx = (x - 0.5) * 2;
       const ny = -(y - 0.5) * 2;
       return { x: nx * (window.innerWidth / window.innerHeight), y: ny };
     }
 
-    // MediaPipe
     const pose = new Pose.Pose({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
     });
@@ -239,7 +243,6 @@ async function initApp() {
     });
     pose.onResults(onPoseResults);
 
-    // Камера
     const cameraUtils = window.Camera;
     let cam;
     async function startCamera() {
@@ -266,9 +269,7 @@ async function initApp() {
       }
     }
 
-    // ФІКС: Повна onPoseResults
     function onPoseResults(results) {
-      // ВАЖЛИВО: завжди оновлюємо сцену
       renderer.render(scene, camera3);
       
       if (results.poseLandmarks) {
@@ -314,7 +315,6 @@ async function initApp() {
       }
     }
 
-    // Кнопки
     document.getElementById('changeBtn').addEventListener('click', () => {
       currentDesign = (currentDesign + 1) % designsCount;
       loadDesign(currentDesign);
@@ -372,7 +372,6 @@ async function initApp() {
       }
     });
 
-    // Сніг
     const sctx = snowCanvas.getContext('2d');
     let particles = [];
     const P_COUNT = Math.round((window.innerWidth / 100) * 6);
@@ -417,20 +416,17 @@ async function initApp() {
       last = t;
       updateSnow(dt);
       drawSnow();
-      // ФІКС: Без рендеру Three.js тут
       requestAnimationFrame(animate);
     }
 
-    // ФІКС: Окремий рендер-луп для Three.js
     function renderLoop() {
       renderer.render(scene, camera3);
       requestAnimationFrame(renderLoop);
     }
 
-    // Запуск
     initSnow();
     animate();
-    renderLoop();  // ФІКС: Запустити
+    renderLoop();
     startCamera();
     setTimeout(() => {
       const guide = document.createElement('div');
@@ -460,7 +456,7 @@ async function initApp() {
     
   } catch (err) {
     console.error('Init error:', err);
-    alert('Помилка завантаження: ' + err.message + '\nПеревір інтернет, AdBlock та GitHub Pages.');
+    alert('Помилка завантаження: ' + err.message + '\nВимкни AdBlock або перевір інтернет.');
   }
 }
 
