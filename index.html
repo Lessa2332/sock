@@ -98,22 +98,13 @@
   </div>
 </div>
 <script>
-async function loadScript(src, fallbackSrc = null) {
+async function loadScript(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = src;
     script.onload = () => resolve(script);
-    script.onerror = () => {
-      if (fallbackSrc) {
-        const fallback = document.createElement('script');
-        fallback.src = fallbackSrc;
-        fallback.onload = () => resolve(fallback);
-        fallback.onerror = () => reject(new Error(`Failed to load ${src} and fallback`));
-        document.head.appendChild(fallback);
-      } else {
-        reject(new Error(`Failed to load ${src}`));
-      }
-    };
+    script.onerror = (e) => reject(new Error(`Завантаження ${src} не вдалося: ${e.message}`));
+    script.timeout = 10000;
     document.head.appendChild(script);
   });
 }
@@ -121,19 +112,19 @@ async function loadScript(src, fallbackSrc = null) {
 async function initApp() {
   try {
     await Promise.all([
-      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js'),
-      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'),
-      loadScript('https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.min.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js'),
+      loadScript('https://unpkg.com/three@0.167.0/build/three.min.js'),  // ФІКС: Стабільна версія 0.167.0 на unpkg
       loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js')
     ]);
     
     if (typeof Pose === 'undefined') {
-      throw new Error('MediaPipe Pose not loaded (check AdBlock/CDN).');
+      throw new Error('MediaPipe Pose не завантажився. Перевір AdBlock.');
     }
     if (typeof THREE === 'undefined') {
-      throw new Error('Three.js not loaded (check AdBlock/CDN).');
+      throw new Error('Three.js не завантажився. Перевір AdBlock.');
     }
-    console.log('All libraries loaded successfully! Pose:', typeof Pose, 'THREE:', typeof THREE);
+    console.log('Усі бібліотеки завантажено! Початок AR.');
 
     const sockPNGs = ['sock1.png', 'sock2.png', 'sock3.png'];
     const video = document.getElementById('camera');
@@ -195,7 +186,7 @@ async function initApp() {
           applyFallback(idx);
         }
       }, undefined, (err) => {
-        console.error('Failed to load:', png, err);
+        console.error('Текстура не завантажилася:', png, err);
         applyFallback(idx);
       });
     }
@@ -236,7 +227,7 @@ async function initApp() {
     }
 
     const pose = new Pose({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
     });
     pose.setOptions({
       modelComplexity: 1,
@@ -264,10 +255,10 @@ async function initApp() {
           video.style.display = 'block';
           video.style.objectFit = 'cover';
         } else {
-          throw new Error('Camera utils not available');
+          throw new Error('Камера не доступна');
         }
       } catch (e) {
-        console.error('Camera start error', e);
+        console.error('Помилка камери:', e);
         alert('Доступ до камери потрібен. Дозволь та перезавантаж.');
       }
     }
@@ -276,7 +267,6 @@ async function initApp() {
       renderer.render(scene, camera3);
       
       if (results.poseLandmarks) {
-        console.log('Pose detected!');
         const L = results.poseLandmarks;
         const leftAnkle = L[27];
         const rightAnkle = L[28];
@@ -368,7 +358,7 @@ async function initApp() {
         link.href = canvas.toDataURL('image/png');
         link.click();
       } catch (err) {
-        console.error('Capture failed', err);
+        console.error('Збереження не вдалося:', err);
         alert('Збереження не вдалося — спробуй ще раз.');
       } finally {
         video.style.display = originalDisplay;
@@ -459,8 +449,8 @@ async function initApp() {
     }, 1000);
     
   } catch (err) {
-    console.error('Init error details:', err);
-    alert('Помилка завантаження: ' + err.message + '\nДеталі в консолі (F12). Вимкни AdBlock.');
+    console.error('Деталі помилки:', err);
+    alert('Помилка запуску: ' + err.message + '\nСпробуй вимкнути AdBlock або перезавантажити.');
   }
 }
 
