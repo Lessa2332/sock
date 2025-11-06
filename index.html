@@ -1,1189 +1,470 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>New Year Nail AR Try-On 2026</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      touch-action: manipulation;
-    }
-    body {
-      background: linear-gradient(135deg, #0c1e3e, #1a3a6d, #2a5298);
-      overflow: hidden;
-      font-family: 'Arial', 'Segoe UI', system-ui, sans-serif;
-      color: white;
-    }
-    #video, #canvas, #confettiCanvas, #photoCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    #video { z-index: 1; display: none; }
-    #canvas { z-index: 2; display: none; }
-    #confettiCanvas { z-index: 60; pointer-events: none; }
-    #photoCanvas { z-index: 3; display: none; }
-
-    .control-btn {
-      position: fixed;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(20px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 100;
-      transition: all 0.3s ease;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    }
-    .control-btn:hover { 
-      transform: scale(1.15); 
-      background: rgba(255, 255, 255, 0.25); 
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-    }
-
-    #langBtn { top: 20px; right: 20px; font-weight: bold; font-size: 16px; }
-    #soundBtn { top: 20px; left: 20px; }
-    #uploadBtn { top: 80px; left: 20px; }
-
-    #authorBtn {
-      position: fixed;
-      top: 78px;
-      right: 20px;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      border: 3px solid #ffd700;
-      color: white;
-      font-size: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 100;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0, 114, 255, 0.5), 0 0 0 4px rgba(255, 215, 0, 0.3);
-      animation: pulse-glow 2s infinite;
-    }
-    #authorBtn:hover {
-      transform: scale(1.2) rotate(10deg);
-      background: linear-gradient(135deg, #0072ff, #00c6ff);
-      box-shadow: 0 8px 25px rgba(0, 114, 255, 0.7), 0 0 0 6px rgba(255, 215, 0, 0.5);
-    }
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 6px 20px rgba(0, 114, 255, 0.5), 0 0 0 4px rgba(255, 215, 0, 0.3); }
-      50% { box-shadow: 0 8px 30px rgba(0, 114, 255, 0.7), 0 0 0 6px rgba(255, 215, 0, 0.5); }
-    }
-
-    #modeControls {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 12px;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(20px);
-      padding: 6px 12px;
-      border-radius: 25px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      max-width: calc(100% - 120px);
-    }
-    .mode-btn {
-      padding: 8px 16px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: white;
-      border: none;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-      white-space: nowrap;
-    }
-    .mode-btn:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4);
-    }
-    .mode-btn.active { 
-      background: linear-gradient(135deg, #ff6b6b, #ff4757); 
-      animation: pulse 2s infinite; 
-      box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
-    }
-
-    #designPicker {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 12px;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(20px);
-      padding: 15px;
-      border-radius: 25px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      max-width: 90vw;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    #designPicker::-webkit-scrollbar { display: none; }
-    .design-btn {
-      width: 60px;
-      height: 90px;
-      border-radius: 16px;
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      object-fit: contain;
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
-    }
-    .design-btn:hover { 
-      transform: scale(1.1); 
-      border-color: rgba(255, 255, 255, 0.5); 
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-    }
-    .design-btn.selected { 
-      transform: scale(1.15); 
-      border-color: #ffd700; 
-      box-shadow: 0 0 0 3px #ffd700, 0 0 20px rgba(255, 215, 0, 0.5); 
-    }
-
-    #maskPicker {
-      position: fixed;
-      bottom: 150px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 12px;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(20px);
-      padding: 15px;
-      border-radius: 25px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      max-width: 90vw;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    #maskPicker::-webkit-scrollbar { display: none; }
-    .mask-btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 16px;
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 12px;
-      text-align: center;
-    }
-    .mask-btn:hover { 
-      transform: scale(1.1); 
-      border-color: rgba(255, 255, 255, 0.5); 
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-    }
-    .mask-btn.selected { 
-      transform: scale(1.15); 
-      border-color: #ffd700; 
-      box-shadow: 0 0 0 3px #ffd700, 0 0 20px rgba(255, 215, 0, 0.5); 
-    }
-
-    #loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #0c1e3e, #1a3a6d, #2a5298);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      color: #00c6ff;
-      font-size: clamp(18px, 4vw, 24px);
-      text-align: center;
-      padding: 20px;
-      gap: 20px;
-    }
-    .loader {
-      width: 60px;
-      height: 60px;
-      border: 4px solid rgba(0, 198, 255, 0.3);
-      border-top: 4px solid #00c6ff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    #loading p {
-      color: #fff;
-      font-size: clamp(14px, 3vw, 18px);
-      max-width: 300px;
-      line-height: 1.4;
-    }
-    .indicator {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(10px);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      display: none;
-      align-items: center;
-      gap: 8px;
-      z-index: 99;
-      font-size: 14px;
-    }
-    #cameraIndicator { top: 20px; }
-    #handIndicator { top: 160px; }
-    .indicator.show { display: flex; animation: slideDown 0.3s ease; }
-
-    #errorRetry {
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      border: none;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 25px;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
-    }
-    #errorRetry:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 8px 20px rgba(0, 114, 255, 0.6);
-    }
-
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-
-    /* Snowflakes */
-    .snowflake {
-      position: absolute;
-      top: -10px;
-      color: white;
-      font-size: 1em;
-      user-select: none;
-      z-index: 5;
-      pointer-events: none;
-      animation: fall linear infinite;
-    }
-
-    @keyframes fall {
-      to { transform: translateY(100vh) rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-      .control-btn { width: 44px; height: 44px; font-size: 17px; }
-      #authorBtn { width: 50px; height: 50px; top: 74px; font-size: 22px; }
-      #modeControls { top: 18px; gap: 8px; padding: 5px 10px; }
-      .mode-btn { padding: 7px 14px; font-size: 12px; }
-      .design-btn { width: 50px; height: 75px; }
-      .mask-btn { width: 50px; height: 50px; font-size: 10px; }
-      #maskPicker { bottom: 140px; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+<title>Magic Christmas Sock — 3D-Like Try-On</title>
+<style>
+  :root{
+    --bg:#fbf7f2;
+    --panel:#fffaf4;
+    --accent:#e7d6c4;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  #app{
+    position:relative;
+    width:100%;
+    height:100vh;
+    overflow:hidden;
+  }
+  video#camera {
+    position: absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    transform: scaleX(-1);
+    display:none;
+    z-index: 0;
+  }
+  canvas#three-canvas{
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    display:block;
+    transform: scaleX(-1);
+    z-index: 1;
+  }
+  canvas#snow-canvas{
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    z-index:2;
+    mix-blend-mode:screen;
+  }
+  .ui{
+    position: absolute;
+    z-index: 10;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .btn{
+    background:var(--panel);
+    border:1px solid var(--accent);
+    padding:10px 14px;
+    border-radius:12px;
+    font-size:15px;
+    cursor:pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  }
+  .btn:active{transform:translateY(1px);}
+  .top-left{
+    position:absolute;
+    top:14px; left:14px; z-index:10;
+    background:rgba(255,255,255,0.8);
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid var(--accent);
+    font-size:14px;
+  }
+  .hint{
+    position:absolute;
+    top:14px; right:14px; z-index:10;
+    background:rgba(255,250,245,0.9);
+    padding:6px 10px;border-radius:10px;border:1px solid var(--accent);
+    font-size:13px;
+  }
+  @media (max-width:600px){
+    .btn{font-size:14px;padding:10px;}
+    .top-left,.hint{font-size:12px}
+  }
+</style>
 </head>
 <body>
-  <div id="loading">
-    <div class="loader"></div>
-    <div id="loadingText">Loading New Year Nail Magic...</div>
-    <p>Please allow camera access</p>
+<div id="app">
+  <video id="camera" playsinline></video>
+  <canvas id="three-canvas"></canvas>
+  <canvas id="snow-canvas"></canvas>
+  <div class="top-left">Magic Sock AR — Try it on your foot 👣</div>
+  <div class="hint">Allow camera → point your foot into view → press 📸 to save</div>
+  <div class="ui">
+    <button id="changeBtn" class="btn">🧦 Change Design</button>
+    <button id="saveBtn" class="btn">📸 Save Photo</button>
+    <button id="flipBtn" class="btn">🔁 Flip Foot</button>
   </div>
+</div>
+<script>
+// Динамічне завантаження lib
+async function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(script);
+    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(script);
+  });
+}
 
-  <video id="video" playsinline muted></video>
-  <canvas id="canvas"></canvas>
-  <canvas id="confettiCanvas"></canvas>
-  <canvas id="photoCanvas"></canvas>
-
-  <input type="file" id="photoUpload" accept="image/*" capture="environment" style="display: none;">
-
-  <button id="langBtn" class="control-btn" aria-label="Switch language">UK</button>
-  <button id="soundBtn" class="control-btn" aria-label="Toggle sound">Sound</button>
-  <button id="uploadBtn" class="control-btn" aria-label="Upload photo">📷</button>
-
-  <a href="https://smartlessa.etsy.com" target="_blank" id="authorBtn" aria-label="Author: smartlessa.etsy.com">
-    Author
-  </a>
-
-  <div id="modeControls">
-    <button class="mode-btn active" id="applyAllBtn" aria-label="Apply to all fingers">All Fingers</button>
-    <button class="mode-btn" id="selectFingerBtn" aria-label="Select finger">Select Finger</button>
-  </div>
-
-  <div id="maskPicker"></div>
-  <div id="designPicker"></div>
-
-  <div id="cameraIndicator" class="indicator">
-    <span>Camera</span>
-    <span>Camera Active</span>
-  </div>
-
-  <div id="handIndicator" class="indicator">
-    <span>Hand</span>
-    <span>Show your hand</span>
-  </div>
-
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
-      }
+async function initApp() {
+  try {
+    await Promise.all([
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'),
+      loadScript('https://unpkg.com/three@0.181.0/build/three.min.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js')
+    ]);
+    
+    if (typeof Pose === 'undefined' || typeof THREE === 'undefined') {
+      throw new Error('Libraries failed to load. Check connection or CDN.');
     }
-  </script>
-  <script type="module">
-    import * as THREE from 'three';
-    import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm";
+    console.log('All libraries loaded successfully!');
+    
+    // Основний код
+    const sockPNGs = ['sock1.png', 'sock2.png', 'sock3.png'];
+    const video = document.getElementById('camera');
+    const threeCanvas = document.getElementById('three-canvas');
+    const snowCanvas = document.getElementById('snow-canvas');
 
-    const CONFIG = {
-      SMOOTHING_FACTOR: 0.7,
-      HAND_NOT_DETECTED_THRESHOLD: 10,
-      NAIL_SCALE_FACTORS: { thumb: 0.42, index: 0.52, middle: 0.54, ring: 0.52, pinky: 0.40 },
-      NAIL_ASPECT_RATIOS: { thumb: 0.58, index: 0.65, middle: 0.68, ring: 0.65, pinky: 0.70 },
-      NAIL_OFFSETS: {
-        thumb: { x: -0.01, y: -0.02 },
-        index: { x: 0, y: -0.02 },
-        middle: { x: 0, y: -0.025 },
-        ring: { x: 0, y: -0.02 },
-        pinky: { x: 0.005, y: -0.015 }
-      },
-      MIN_SIZE: 25, MAX_SIZE: 85,
-      WRIST_DISTANCE_REF: 0.1, SCALE_SENSITIVITY: 1.8,
-      MAX_SCALE_FACTOR: 2.0, MIN_SCALE_FACTOR: 0.6
-    };
+    const scene = new THREE.Scene();
+    const camera3 = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 10);
+    camera3.position.z = 1;
+    const renderer = new THREE.WebGLRenderer({
+      canvas: threeCanvas,
+      alpha: true,
+      antialias: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.setClearColor(0x000000, 0);  // ФІКС: прозорий фон
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.9);
+    scene.add(hemi);
 
-    const FINGER_INDICES = {
-      thumb: { tip: 4, mcp: 2, pip: 3, ip: 3 },
-      index: { tip: 8, mcp: 5, pip: 6, dip: 7 },
-      middle: { tip: 12, mcp: 9, pip: 10, dip: 11 },
-      ring: { tip: 16, mcp: 13, pip: 14, dip: 15 },
-      pinky: { tip: 20, mcp: 17, pip: 18, dip: 19 }
-    };
-    const FINGER_KEYS = Object.keys(FINGER_INDICES);
+    // Шкарпетка
+    let sockGroup = new THREE.Group();
+    const fallbackColors = [0xff6b6b, 0x4ecdc4, 0xffeb3b];
+    let sockMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthTest: true
+    });
+    const leg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.095, 0.11, 0.32, 16),
+      sockMaterial
+    );
+    leg.position.y = 0.18;
+    const toe = new THREE.Mesh(
+      new THREE.SphereGeometry(0.1, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+      sockMaterial
+    );
+    toe.position.y = -0.02;
+    toe.rotation.x = Math.PI;
+    sockGroup.add(leg, toe);
+    sockGroup.scale.x = -1;
+    sockGroup.visible = false;  // Початково прихована
+    scene.add(sockGroup);
 
-    const translations = {
-      en: {
-        title: "New Year Nail AR Try-On 2026",
-        loading: "Loading New Year Nail Magic...",
-        cameraPrompt: "Please allow camera access",
-        allFingers: "All Fingers",
-        pickFinger: "Select Finger",
-        cameraError: "Camera access denied.<br>Try Chrome or Safari.",
-        arError: "AR failed to load.<br>Refresh page.",
-        retry: "Retry",
-        cameraActive: "Camera Active",
-        handNotDetected: "Show your hand"
-      },
-      uk: {
-        title: "Новорічний манікюр AR 2026",
-        loading: "Завантаження новорічного манікюру...",
-        cameraPrompt: "Дозвольте доступ до камери",
-        allFingers: "Усі пальці",
-        pickFinger: "Обрати палець",
-        cameraError: "Немає доступу до камери.<br>Спробуйте Chrome або Safari.",
-        arError: "Помилка AR.<br>Оновіть сторінку.",
-        retry: "Повторити",
-        cameraActive: "Камера активна",
-        handNotDetected: "Покажи руку"
-      }
-    };
-
-    const state = {
-      currentLang: 'en',
-      currentDesign: "1",
-      currentMask: "none",
-      isApplyAll: true,
-      selectedFingerIndex: -1,
-      isMuted: false,
-      lastLandmarks: null,
-      smoothedLandmarks: null,
-      handNotDetectedCount: 0,
-      animationFrameId: null,
-      palmOrientation: { x: 0, y: 0 },
-      currentHandSize: 1.0,
-      wristDistance: 0,
-      rainbowTime: 0,
-      isAudioUnlocked: false,
-      isPhotoMode: false,
-      uploadedPhoto: null
-    };
-
-    const elements = {
-      video: document.getElementById("video"),
-      canvas: document.getElementById("canvas"),
-      confettiCanvas: document.getElementById("confettiCanvas"),
-      photoCanvas: document.getElementById("photoCanvas"),
-      photoUpload: document.getElementById("photoUpload"),
-      loading: document.getElementById("loading"),
-      loadingText: document.getElementById("loadingText"),
-      langBtn: document.getElementById("langBtn"),
-      soundBtn: document.getElementById("soundBtn"),
-      uploadBtn: document.getElementById("uploadBtn"),
-      authorBtn: document.getElementById("authorBtn"),
-      applyAllBtn: document.getElementById("applyAllBtn"),
-      selectFingerBtn: document.getElementById("selectFingerBtn"),
-      designPicker: document.getElementById("designPicker"),
-      maskPicker: document.getElementById("maskPicker"),
-      cameraIndicator: document.getElementById("cameraIndicator"),
-      handIndicator: document.getElementById("handIndicator")
-    };
-
-    const confettiCtx = elements.confettiCanvas.getContext("2d");
-    const photoCtx = elements.photoCanvas.getContext("2d");
-    let confetti = [];
-
-    function resizeCanvases() {
-      elements.confettiCanvas.width = window.innerWidth;
-      elements.confettiCanvas.height = window.innerHeight;
-      elements.photoCanvas.width = window.innerWidth;
-      elements.photoCanvas.height = window.innerHeight;
-    }
-    resizeCanvases();
-    window.addEventListener('resize', resizeCanvases);
-
-    // Create snowflakes
-    function createSnowflakes() {
-      const snowflakesContainer = document.createElement('div');
-      snowflakesContainer.id = 'snowflakes';
-      document.body.appendChild(snowflakesContainer);
-      
-      for (let i = 0; i < 50; i++) {
-        const snowflake = document.createElement('div');
-        snowflake.className = 'snowflake';
-        snowflake.innerHTML = '❄';
-        snowflake.style.left = Math.random() * 100 + 'vw';
-        snowflake.style.animationDuration = Math.random() * 3 + 2 + 's';
-        snowflake.style.opacity = Math.random();
-        snowflake.style.fontSize = Math.random() * 10 + 10 + 'px';
-        snowflake.style.animationDelay = Math.random() * 5 + 's';
-        snowflakesContainer.appendChild(snowflake);
-      }
-    }
-
-    // Використовуємо існуючі аудіофайли
-    const audio = {
-      bgMusic: new Audio('audio/bg-music.mp3'),
-      click: new Audio('audio/click.mp3')
-    };
-    audio.bgMusic.loop = true;
-    audio.bgMusic.volume = 0.4;
-    audio.click.volume = 0.5;
-
-    // Зменшуємо кількість дизайнів до 3
-    const DESIGNS = ["1", "2", "3"];
-    const MASKS = [
-      { id: "none", name: "None" },
-      { id: "oval", name: "Oval" },
-      { id: "rounded-square", name: "Rounded Square" },
-      { id: "fleur", name: "Fleur" },
-      { id: "gel", name: "Gel Effect" }
-    ];
-    const nailTextures = {};
-
-    let scene, camera, renderer;
-    const nails = {};
-    let handLandmarker;
-
-    const NAIL_SHADER = {
-      vertexShader: `
-        varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vViewPosition;
-        void main() {
-          vUv = uv;
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          vViewPosition = -mvPosition.xyz;
-          vNormal = normalize(normalMatrix * normal);
-          gl_Position = projectionMatrix * mvPosition;
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D map;
-        uniform float time;
-        uniform float shineIntensity;
-        uniform int maskType;
-        varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vViewPosition;
-
-        vec3 holiday(float t) {
-          return vec3(
-            0.5 + 0.5 * sin(t),
-            0.5 + 0.5 * sin(t + 2.0),
-            0.5 + 0.5 * sin(t + 4.0)
-          );
-        }
-
-        // Функції для масок
-        float ovalMask(vec2 uv) {
-          vec2 center = vec2(0.5, 0.5);
-          vec2 d = uv - center;
-          float r = 0.5;
-          float ellipse = (d.x * d.x) / (r * r) + (d.y * d.y) / (r * r * 0.7);
-          return step(ellipse, 1.0);
-        }
-
-        float roundedSquareMask(vec2 uv) {
-          vec2 center = vec2(0.5, 0.5);
-          vec2 d = abs(uv - center);
-          float radius = 0.1;
-          vec2 q = d - vec2(0.5 - radius);
-          float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
-          return step(dist, 0.0);
-        }
-
-        float fleurMask(vec2 uv) {
-          vec2 center = vec2(0.5, 0.5);
-          vec2 d = uv - center;
-          float angle = atan(d.y, d.x);
-          float r = length(d) * 2.0;
-          float flower = 0.5 + 0.3 * cos(6.0 * angle);
-          return step(r, flower);
-        }
-
-        float gelEffect(vec2 uv) {
-          vec2 center = vec2(0.5, 0.5);
-          float dist = distance(uv, center);
-          float shine = 0.8 + 0.2 * sin(time * 3.0 + dist * 10.0);
-          return shine;
-        }
-
-        void main() {
-          vec4 texColor = texture2D(map, vUv);
-          if (texColor.a < 0.1) discard;
-
-          vec3 color = texColor.rgb;
-
-          // Застосовуємо маску
-          float mask = 1.0;
-          if (maskType == 1) {
-            mask = ovalMask(vUv);
-          } else if (maskType == 2) {
-            mask = roundedSquareMask(vUv);
-          } else if (maskType == 3) {
-            mask = fleurMask(vUv);
-          }
-          
-          if (mask < 0.5) discard;
-
-          // Ефект гель-лаку
-          if (maskType == 4) {
-            float gel = gelEffect(vUv);
-            color *= gel;
-          }
-
-          float shine = smoothstep(0.3, 0.7, vUv.y + sin(vUv.y * 8.0 - time * 1.5) * 0.1);
-          shine = pow(shine, 2.0) * 0.5;
-          vec3 highlight = holiday(time * 3.0) * shine * shineIntensity;
-
-          float fresnel = pow(1.0 - dot(normalize(vViewPosition), vNormal), 3.0);
-          vec3 rim = vec3(1.0, 0.9, 0.8) * fresnel * 0.3;
-
-          float shadow = smoothstep(0.0, 0.25, vUv.y);
-          color *= (1.0 - shadow * 0.25);
-
-          color = color + highlight + rim;
-          gl_FragColor = vec4(color, texColor.a * mask);
-        }
-      `
-    };
-
-    class ConfettiParticle {
-      constructor(x, y) {
-        this.x = x; this.y = y;
-        this.vx = (Math.random() - 0.5) * 8;
-        this.vy = Math.random() * -15 - 5;
-        this.size = Math.random() * 6 + 4;
-        this.color = `hsl(${Math.random() * 60 + 180}, 100%, 70%)`; // Blue/cyan tones
-        this.life = 1.0;
-        this.gravity = 0.4;
-        this.rotation = Math.random() * Math.PI * 2;
-        this.spin = (Math.random() - 0.5) * 0.3;
-      }
-      update() {
-        this.vy += this.gravity;
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life -= 0.015;
-        this.rotation += this.spin;
-      }
-      draw(ctx) {
-        if (this.life <= 0) return;
-        ctx.save();
-        ctx.globalAlpha = this.life;
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        ctx.fillStyle = this.color;
-        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-        ctx.restore();
-      }
-    }
-
-    class NailARApplication {
-      constructor() { this.init(); }
-
-      async init() {
-        try {
-          this.setupEventListeners();
-          await this.setupCamera();
-          await this.initWebGL();
-          await this.setupHandTracking();
-          await this.loadResources();
-          this.setupAudio();
-          this.updateUI();
-          this.hideLoading();
-          this.startRenderLoop();
-          this.unlockAudio();
-          createSnowflakes();
-        } catch (error) {
-          this.handleError(error);
-        }
-      }
-
-      unlockAudio() {
-        const unlock = () => {
-          if (state.isAudioUnlocked) return;
-          state.isAudioUnlocked = true;
-          if (!state.isMuted) {
-            audio.bgMusic.play().catch(() => {});
-          }
-          document.removeEventListener('click', unlock);
-          document.removeEventListener('touchstart', unlock);
-        };
-        document.addEventListener('click', unlock, { once: true });
-        document.addEventListener('touchstart', unlock, { once: true });
-      }
-
-      setupAudio() {}
-
-      playSound(sound) {
-        if (state.isMuted || !state.isAudioUnlocked) return;
-        try {
-          sound.currentTime = 0;
-          sound.play().catch(() => {});
-        } catch (e) {}
-      }
-
-      toggleSound() {
-        state.isMuted = !state.isMuted;
-        if (state.isMuted) {
-          audio.bgMusic.pause();
-        } else if (state.isAudioUnlocked) {
-          audio.bgMusic.play().catch(() => {});
-        }
-        this.updateSoundButton();
-        this.playSound(audio.click);
-      }
-
-      setupEventListeners() {
-        elements.langBtn.addEventListener('click', () => this.toggleLanguage());
-        elements.soundBtn.addEventListener('click', () => this.toggleSound());
-        elements.uploadBtn.addEventListener('click', () => this.uploadPhoto());
-        elements.photoUpload.addEventListener('change', (e) => this.handlePhotoUpload(e));
-        elements.applyAllBtn.addEventListener('click', () => this.setApplyAllMode());
-        elements.selectFingerBtn.addEventListener('click', () => this.setSelectFingerMode());
-        elements.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-        elements.canvas.addEventListener('touchstart', (e) => this.handleCanvasClick(e));
-        window.addEventListener('resize', () => { this.handleResize(); resizeCanvases(); });
-        window.addEventListener('beforeunload', () => this.cleanup());
-      }
-
-      async setupCamera() {
-        try {
-          const constraints = { video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } };
-          const stream = await navigator.mediaDevices.getUserMedia(constraints);
-          elements.video.srcObject = stream;
-          await new Promise(r => { elements.video.onloadedmetadata = () => { elements.video.play(); r(); }; });
-          this.showCameraIndicator();
-        } catch (error) {
-          console.error('Camera setup failed:', error);
-          throw new Error('CAMERA_ERROR');
-        }
-      }
-
-      async initWebGL() {
-        scene = new THREE.Scene();
-        camera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 0.1, 1000);
-        camera.position.z = 10;
-        renderer = new THREE.WebGLRenderer({ canvas: elements.canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        this.createNails();
-      }
-
-      createNails() {
-        const shaderMaterial = new THREE.ShaderMaterial({
-          uniforms: { 
-            map: { value: null }, 
-            time: { value: 0 }, 
-            shineIntensity: { value: 1.0 },
-            maskType: { value: 0 }
-          },
-          vertexShader: NAIL_SHADER.vertexShader,
-          fragmentShader: NAIL_SHADER.fragmentShader,
-          transparent: true,
-          side: THREE.DoubleSide,
-          depthTest: false,
-          depthWrite: false
-        });
-
-        FINGER_KEYS.forEach(key => {
-          const aspect = CONFIG.NAIL_ASPECT_RATIOS[key];
-          const geometry = new THREE.PlaneGeometry(aspect, 1);
-          const material = shaderMaterial.clone();
-          const nail = new THREE.Mesh(geometry, material);
-          nail.visible = false;
-          nail.frustumCulled = false;
-          nail.userData.fingerType = key;
-          nails[key] = nail;
-          scene.add(nail);
-        });
-      }
-
-      async setupHandTracking() {
-        const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
-        handLandmarker = await HandLandmarker.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task", delegate: "GPU" },
-          runningMode: "VIDEO",
-          numHands: 1
-        });
-      }
-
-      async loadResources() {
-        await this.loadDesigns();
-        this.buildDesignUI();
-        this.buildMaskUI();
-      }
-
-      async loadDesigns() {
-        const loadImage = (name) => new Promise((resolve) => {
-          const img = new Image();
-          // Використовуємо існуючі дизайни з папки halloween
-          img.src = `nails/halloween/${name}.png`;
-          img.onload = () => {
-            const texture = new THREE.CanvasTexture(img);
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            texture.generateMipmaps = false;
-            nailTextures[name] = texture;
-            resolve();
-          };
-          img.onerror = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 100; canvas.height = 170;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#00c6ff'; ctx.fillRect(0, 0, 100, 170);
-            ctx.fillStyle = 'white'; ctx.font = '16px Arial'; ctx.textAlign = 'center';
-            ctx.fillText(name, 50, 90);
-            nailTextures[name] = new THREE.CanvasTexture(canvas);
-            resolve();
-          };
-        });
-        await Promise.all(DESIGNS.map(loadImage));
-      }
-
-      buildDesignUI() {
-        elements.designPicker.innerHTML = '';
-        DESIGNS.forEach(name => {
-          const btn = document.createElement('img');
-          // Використовуємо існуючі дизайни з папки halloween
-          btn.src = `nails/halloween/${name}.png`;
-          btn.className = `design-btn ${name === state.currentDesign ? 'selected' : ''}`;
-          btn.alt = `Design ${name}`;
-          btn.loading = 'lazy';
-          btn.addEventListener('click', () => { this.selectDesign(name); });
-          elements.designPicker.appendChild(btn);
-        });
-      }
-
-      buildMaskUI() {
-        elements.maskPicker.innerHTML = '';
-        MASKS.forEach((mask, index) => {
-          const btn = document.createElement('div');
-          btn.className = `mask-btn ${mask.id === state.currentMask ? 'selected' : ''}`;
-          btn.textContent = mask.name;
-          btn.addEventListener('click', () => { this.selectMask(mask.id, index); });
-          elements.maskPicker.appendChild(btn);
-        });
-      }
-
-      startRenderLoop() {
-        const render = () => {
-          this.detectHands();
-          this.renderAR();
-          this.updateConfetti();
-          this.updateHolidayShine();
-
-          const time = performance.now() * 0.001;
-          FINGER_KEYS.forEach(key => {
-            const mat = nails[key].material;
-            if (mat && mat.uniforms) {
-              mat.uniforms.time.value = time;
-              // Встановлюємо тип маски
-              mat.uniforms.maskType.value = MASKS.findIndex(m => m.id === state.currentMask);
+    let texLoader = new THREE.TextureLoader();
+    let currentDesign = 0;
+    const designsCount = sockPNGs.length;
+    function loadDesign(idx) {
+      const png = sockPNGs[idx];
+      texLoader.load(png, (texture) => {
+        if (texture.image) {
+          sockGroup.traverse(child => {
+            if (child.isMesh) {
+              child.material.map = texture;
+              child.material.color.setHex(0xffffff);
+              child.material.needsUpdate = true;
             }
           });
-
-          state.animationFrameId = requestAnimationFrame(render);
-        };
-        render();
-      }
-
-      updateConfetti() {
-        confetti = confetti.filter(p => p.life > 0);
-        confetti.forEach(p => p.update());
-        confettiCtx.clearRect(0, 0, elements.confettiCanvas.width, elements.confettiCanvas.height);
-        confetti.forEach(p => p.draw(confettiCtx));
-      }
-
-      updateHolidayShine() {
-        state.rainbowTime += 0.02;
-        FINGER_KEYS.forEach(key => {
-          const mat = nails[key].material;
-          if (mat && mat.uniforms) {
-            mat.uniforms.shineIntensity.value = 0.8 + 0.2 * Math.sin(state.rainbowTime);
-          }
-        });
-      }
-
-      detectHands() {
-        if (!handLandmarker || elements.video.readyState < 2) return;
-        try {
-          const predictions = handLandmarker.detectForVideo(elements.video, performance.now());
-          if (predictions.landmarks?.length > 0) {
-            state.handNotDetectedCount = 0;
-            this.hideHandIndicator();
-            const landmarks = predictions.landmarks[0];
-            state.lastLandmarks = this.smoothLandmarks(landmarks);
-            this.updatePalmOrientation(landmarks);
-            this.calculateHandSize(landmarks);
-          } else {
-            state.handNotDetectedCount++;
-            if (state.handNotDetectedCount > CONFIG.HAND_NOT_DETECTED_THRESHOLD) {
-              this.showHandIndicator();
-              this.hideAllNails();
-            }
-          }
-        } catch (error) {
-          console.error('Hand detection error:', error);
-        }
-      }
-
-      calculateHandSize(landmarks) {
-        const wristStart = landmarks[0];
-        const wristEnd = landmarks[1];
-        const wristDistance = Math.hypot(wristStart.x - wristEnd.x, wristStart.y - wristEnd.y);
-        state.wristDistance = wristDistance;
-        let scaleFactor = wristDistance / CONFIG.WRIST_DISTANCE_REF * CONFIG.SCALE_SENSITIVITY;
-        scaleFactor = Math.min(scaleFactor, CONFIG.MAX_SCALE_FACTOR);
-        scaleFactor = Math.max(scaleFactor, CONFIG.MIN_SCALE_FACTOR);
-        state.currentHandSize = scaleFactor;
-      }
-
-      updatePalmOrientation(landmarks) {
-        const wrist = landmarks[0];
-        const middleMCP = landmarks[9];
-        state.palmOrientation = {
-          x: (middleMCP.x - wrist.x) * window.innerWidth,
-          y: (middleMCP.y - wrist.y) * window.innerHeight
-        };
-      }
-
-      smoothLandmarks(newLandmarks) {
-        if (!state.smoothedLandmarks) {
-          state.smoothedLandmarks = newLandmarks.map(lm => ({ ...lm }));
-          return state.smoothedLandmarks;
-        }
-        for (let i = 0; i < newLandmarks.length; i++) {
-          state.smoothedLandmarks[i].x = this.lerp(state.smoothedLandmarks[i].x, newLandmarks[i].x, CONFIG.SMOOTHING_FACTOR);
-          state.smoothedLandmarks[i].y = this.lerp(state.smoothedLandmarks[i].y, newLandmarks[i].y, CONFIG.SMOOTHING_FACTOR);
-        }
-        return state.smoothedLandmarks;
-      }
-
-      lerp(start, end, factor) { return start * (1 - factor) + end * factor; }
-
-      renderAR() {
-        if (!state.lastLandmarks) return;
-        FINGER_KEYS.forEach((key, index) => {
-          const nail = nails[key];
-          if (!state.isApplyAll && index !== state.selectedFingerIndex) {
-            nail.visible = false;
-            return;
-          }
-          this.updateNailPosition(key);
-          nail.visible = true;
-        });
-        renderer.render(scene, camera);
-      }
-
-      updateNailPosition(fingerKey) {
-        const landmarks = state.lastLandmarks;
-        const nail = nails[fingerKey];
-        if (fingerKey === 'thumb') {
-          this.updateThumbNailPosition(fingerKey, landmarks);
         } else {
-          this.updateFingerNailPosition(fingerKey, landmarks);
+          applyFallback(idx);
         }
-        if (nailTextures[state.currentDesign]) {
-          nail.material.uniforms.map.value = nailTextures[state.currentDesign];
-          nail.material.needsUpdate = true;
+      }, undefined, (err) => {
+        console.error('Failed to load:', png, err);
+        applyFallback(idx);
+      });
+    }
+    function applyFallback(idx) {
+      const color = fallbackColors[idx % fallbackColors.length];
+      sockGroup.traverse(child => {
+        if (child.isMesh) {
+          child.material.map = null;
+          child.material.color.setHex(color);
+          child.material.needsUpdate = true;
         }
-      }
+      });
+    }
+    loadDesign(0);
 
-      updateThumbNailPosition(fingerKey, landmarks) {
-        const nail = nails[fingerKey];
-        const { tip, mcp, ip } = FINGER_INDICES[fingerKey];
-        const tipLandmark = landmarks[tip];
-        const mcpLandmark = landmarks[mcp];
-        const ipLandmark = landmarks[ip];
-        const thumbDirection = { x: tipLandmark.x - landmarks[0].x, y: tipLandmark.y - landmarks[0].y };
-        const thumbOffset = { x: CONFIG.NAIL_OFFSETS.thumb.x - Math.min(Math.hypot(thumbDirection.x, thumbDirection.y) * 5, 0.02), y: CONFIG.NAIL_OFFSETS.thumb.y };
-        const screenX = (tipLandmark.x + thumbOffset.x) * window.innerWidth;
-        const screenY = (1 - (tipLandmark.y + thumbOffset.y)) * window.innerHeight;
-        const thumbLength = Math.hypot((tipLandmark.x - mcpLandmark.x) * window.innerWidth, (tipLandmark.y - mcpLandmark.y) * window.innerHeight);
-        let nailHeight = thumbLength * CONFIG.NAIL_SCALE_FACTORS.thumb * state.currentHandSize;
-        nailHeight = Math.max(CONFIG.MIN_SIZE, Math.min(CONFIG.MAX_SIZE, nailHeight));
-        const angle = Math.atan2(tipLandmark.y - ipLandmark.y, tipLandmark.x - ipLandmark.x);
-        nail.position.set(screenX - window.innerWidth / 2, screenY - window.innerHeight / 2, 0);
-        const aspect = CONFIG.NAIL_ASPECT_RATIOS[fingerKey];
-        nail.scale.set(nailHeight * aspect, nailHeight, 1);
-        nail.rotation.z = angle;
-      }
+    // Resize
+    function resize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      threeCanvas.width = width;
+      threeCanvas.height = height;
+      threeCanvas.style.width = `${width}px`;
+      threeCanvas.style.height = `${height}px`;
+      snowCanvas.width = width;
+      snowCanvas.height = height;
+      snowCanvas.style.width = `${width}px`;
+      snowCanvas.style.height = `${height}px`;
+      camera3.aspect = width / height;
+      camera3.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
-      updateFingerNailPosition(fingerKey, landmarks) {
-        const nail = nails[fingerKey];
-        const { tip, pip } = FINGER_INDICES[fingerKey];
-        const tipLandmark = landmarks[tip];
-        const pipLandmark = landmarks[pip];
-        const offset = CONFIG.NAIL_OFFSETS[fingerKey];
-        const screenX = (tipLandmark.x + offset.x) * window.innerWidth;
-        const screenY = (1 - (tipLandmark.y + offset.y)) * window.innerHeight;
-        const fingerLength = Math.hypot((tipLandmark.x - pipLandmark.x) * window.innerWidth, (tipLandmark.y - pipLandmark.y) * window.innerHeight);
-        let nailHeight = fingerLength * CONFIG.NAIL_SCALE_FACTORS[fingerKey] * state.currentHandSize;
-        nailHeight = Math.max(CONFIG.MIN_SIZE, Math.min(CONFIG.MAX_SIZE, nailHeight));
-        const angle = Math.atan2(tipLandmark.y - pipLandmark.y, tipLandmark.x - pipLandmark.x);
-        nail.position.set(screenX - window.innerWidth / 2, screenY - window.innerHeight / 2, 0);
-        const aspect = CONFIG.NAIL_ASPECT_RATIOS[fingerKey];
-        nail.scale.set(nailHeight * aspect, nailHeight, 1);
-        nail.rotation.z = angle;
-      }
+    // Координати
+    function mpToThree(x, y) {
+      const nx = (x - 0.5) * 2;
+      const ny = -(y - 0.5) * 2;
+      return { x: nx * (window.innerWidth / window.innerHeight), y: ny };
+    }
 
-      hideAllNails() {
-        FINGER_KEYS.forEach(key => nails[key].visible = false);
-        renderer.render(scene, camera);
-      }
+    // MediaPipe
+    const pose = new Pose.Pose({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+    });
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+    pose.onResults(onPoseResults);
 
-      handleCanvasClick(event) {
-        if (state.isApplyAll || !state.lastLandmarks) return;
-        event.preventDefault();
-        const rect = elements.canvas.getBoundingClientRect();
-        const x = (event.clientX || event.touches[0].clientX) - rect.left;
-        const y = (event.clientY || event.touches[0].clientY) - rect.top;
-        state.selectedFingerIndex = this.getClosestFinger(x, y);
-        this.playSound(audio.click);
-      }
-
-      getClosestFinger(touchX, touchY) {
-        let minDist = Infinity, closestIndex = -1;
-        FINGER_KEYS.forEach((key, index) => {
-          const tipIndex = FINGER_INDICES[key].tip;
-          const landmark = state.lastLandmarks[tipIndex];
-          const x = landmark.x * window.innerWidth;
-          const y = (1 - landmark.y) * window.innerHeight;
-          const dist = Math.hypot(touchX - x, touchY - y);
-          if (dist < minDist && dist < window.innerWidth * 0.1) {
-            minDist = dist;
-            closestIndex = index;
-          }
-        });
-        return closestIndex;
-      }
-
-      toggleLanguage() {
-        state.currentLang = state.currentLang === 'en' ? 'uk' : 'en';
-        this.updateUI();
-        elements.langBtn.textContent = state.currentLang === 'en' ? 'UK' : 'EN';
-        this.playSound(audio.click);
-      }
-
-      setApplyAllMode() {
-        state.isApplyAll = true;
-        state.selectedFingerIndex = -1;
-        elements.applyAllBtn.classList.add('active');
-        elements.selectFingerBtn.classList.remove('active');
-        this.playSound(audio.click);
-      }
-
-      setSelectFingerMode() {
-        state.isApplyAll = false;
-        elements.applyAllBtn.classList.remove('active');
-        elements.selectFingerBtn.classList.add('active');
-        this.playSound(audio.click);
-      }
-
-      selectDesign(name) {
-        state.currentDesign = name;
-        document.querySelectorAll('.design-btn').forEach(btn => {
-          btn.classList.toggle('selected', btn.src.includes(`${name}.png`));
-        });
-        this.playSound(audio.click);
-        this.triggerConfetti();
-      }
-
-      selectMask(maskId, index) {
-        state.currentMask = maskId;
-        document.querySelectorAll('.mask-btn').forEach((btn, i) => {
-          btn.classList.toggle('selected', i === index);
-        });
-        this.playSound(audio.click);
-      }
-
-      uploadPhoto() {
-        elements.photoUpload.click();
-      }
-
-      handlePhotoUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            state.uploadedPhoto = img;
-            state.isPhotoMode = true;
-            
-            // Відображаємо фото на canvas
-            photoCtx.clearRect(0, 0, elements.photoCanvas.width, elements.photoCanvas.height);
-            const aspectRatio = img.width / img.height;
-            let drawWidth = elements.photoCanvas.width;
-            let drawHeight = elements.photoCanvas.height;
-            
-            if (aspectRatio > 1) {
-              drawHeight = drawWidth / aspectRatio;
-            } else {
-              drawWidth = drawHeight * aspectRatio;
-            }
-            
-            const x = (elements.photoCanvas.width - drawWidth) / 2;
-            const y = (elements.photoCanvas.height - drawHeight) / 2;
-            
-            photoCtx.drawImage(img, x, y, drawWidth, drawHeight);
-            elements.photoCanvas.style.display = 'block';
-            elements.video.style.display = 'none';
-            elements.canvas.style.display = 'none';
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-
-      triggerConfetti() {
-        const rect = elements.designPicker.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
-        for (let i = 0; i < 50; i++) {
-          confetti.push(new ConfettiParticle(x + (Math.random() - 0.5) * 100, y));
+    // Камера
+    const cameraUtils = window.Camera;
+    let cam;
+    async function startCamera() {
+      try {
+        if (cameraUtils) {
+          cam = new cameraUtils(video, {
+            onFrame: async () => {
+              if (pose) {
+                await pose.send({ image: video });
+              }
+            },
+            width: 640,
+            height: 480
+          });
+          await cam.start();
+          video.style.display = 'block';
+          video.style.objectFit = 'cover';
+        } else {
+          throw new Error('Camera utils not available');
         }
-      }
-
-      updateUI() {
-        const t = translations[state.currentLang];
-        document.title = t.title;
-        elements.loadingText.textContent = t.loading;
-        document.querySelector('#loading p').textContent = t.cameraPrompt;
-        elements.applyAllBtn.textContent = t.allFingers;
-        elements.selectFingerBtn.textContent = t.pickFinger;
-        elements.handIndicator.innerHTML = `<span>Hand</span><span>${t.handNotDetected}</span>`;
-        elements.cameraIndicator.innerHTML = `<span>Camera</span><span>${t.cameraActive}</span>`;
-        elements.langBtn.textContent = state.currentLang === 'en' ? 'UK' : 'EN';
-        this.updateSoundButton();
-      }
-
-      updateSoundButton() {
-        elements.soundBtn.textContent = state.isMuted ? 'Muted' : 'Sound';
-      }
-
-      showCameraIndicator() {
-        elements.cameraIndicator.classList.add('show');
-        setTimeout(() => elements.cameraIndicator.classList.remove('show'), 3000);
-      }
-
-      showHandIndicator() { elements.handIndicator.classList.add('show'); }
-      hideHandIndicator() { elements.handIndicator.classList.remove('show'); }
-
-      hideLoading() {
-        elements.loading.style.display = 'none';
-        elements.video.style.display = 'block';
-        elements.canvas.style.display = 'block';
-      }
-
-      handleResize() {
-        if (!camera || !renderer) return;
-        camera.left = -window.innerWidth / 2;
-        camera.right = window.innerWidth / 2;
-        camera.top = window.innerHeight / 2;
-        camera.bottom = -window.innerHeight / 2;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      }
-
-      handleError(error) {
-        console.error('App error:', error);
-        const t = translations[state.currentLang];
-        let message = error.message === 'CAMERA_ERROR' ? t.cameraError : t.arError;
-        elements.loading.innerHTML = `
-          <div style="color: #ff4757; font-size: 24px; margin-bottom: 20px;">Error</div>
-          <div style="color: white; font-size: 18px; margin-bottom: 20px; line-height: 1.4;">${message}</div>
-          <button id="errorRetry">${t.retry}</button>
-        `;
-        elements.loading.style.display = 'flex';
-        document.getElementById('errorRetry').addEventListener('click', () => location.reload());
-      }
-
-      cleanup() {
-        if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
-        if (elements.video.srcObject) elements.video.srcObject.getTracks().forEach(track => track.stop());
-        if (handLandmarker) handLandmarker.close();
+      } catch (e) {
+        console.error('Camera start error', e);
+        alert('Camera access is required. Please allow camera and reload the page.');
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => new NailARApplication());
-  </script>
+    // ФІКС: Повна onPoseResults
+    function onPoseResults(results) {
+      // ВАЖЛИВО: завжди оновлюємо сцену
+      renderer.render(scene, camera3);
+      
+      if (results.poseLandmarks) {
+        const L = results.poseLandmarks;
+        const leftAnkle = L[27];
+        const rightAnkle = L[28];
+        const leftToe = L[31];
+        const rightToe = L[32];
+       
+        let ankle, toePt;
+        if (rightAnkle && leftAnkle) {
+          if (rightAnkle.y > leftAnkle.y) {
+            ankle = rightAnkle;
+            toePt = rightToe;
+          } else {
+            ankle = leftAnkle;
+            toePt = leftToe;
+          }
+        } else {
+          ankle = rightAnkle || leftAnkle;
+          toePt = rightToe || leftToe;
+        }
+       
+        if (ankle && toePt && ankle.visibility > 0.3 && toePt.visibility > 0.3) {
+          const pAn = mpToThree(ankle.x, ankle.y);
+          const pTo = mpToThree(toePt.x, toePt.y);
+          const angle = Math.atan2(pTo.y - pAn.y, pTo.x - pAn.x);
+         
+          sockGroup.position.x = pAn.x * 0.9;
+          sockGroup.position.y = pAn.y * 0.95;
+          sockGroup.rotation.z = -angle;
+         
+          const dist = Math.hypot(pTo.x - pAn.x, pTo.y - pAn.y);
+          const scaleFactor = THREE.MathUtils.clamp(0.6 + dist * 1.2, 0.6, 1.6);
+          sockGroup.scale.set(scaleFactor, scaleFactor, 1);
+         
+          sockGroup.visible = true;
+        } else {
+          sockGroup.visible = false;
+        }
+      } else {
+        sockGroup.visible = false;
+      }
+    }
+
+    // Кнопки
+    document.getElementById('changeBtn').addEventListener('click', () => {
+      currentDesign = (currentDesign + 1) % designsCount;
+      loadDesign(currentDesign);
+    });
+    let flipped = true;
+    document.getElementById('flipBtn').addEventListener('click', () => {
+      flipped = !flipped;
+      threeCanvas.style.transform = flipped ? 'scaleX(-1)' : 'scaleX(1)';
+      video.style.transform = flipped ? 'scaleX(-1)' : 'scaleX(1)';
+    });
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const flash = document.createElement('div');
+      flash.style.position = 'fixed';
+      flash.style.left = flash.style.top = '0';
+      flash.style.width = flash.style.height = '100%';
+      flash.style.background = '#fff';
+      flash.style.opacity = '0';
+      flash.style.zIndex = '9999';
+      flash.style.pointerEvents = 'none';
+      document.body.appendChild(flash);
+      flash.animate([
+        { opacity: 0 },
+        { opacity: 0.9 },
+        { opacity: 0 }
+      ], {
+        duration: 300,
+        easing: 'ease-out'
+      });
+      setTimeout(() => {
+        if (flash.parentNode) {
+          document.body.removeChild(flash);
+        }
+      }, 300);
+      const originalDisplay = video.style.display;
+      const originalZIndex = video.style.zIndex;
+      video.style.display = 'block';
+      video.style.zIndex = '0';
+      try {
+        const canvas = await html2canvas(document.getElementById('app'), {
+          useCORS: true,
+          scale: window.devicePixelRatio || 1,
+          allowTaint: true,
+          backgroundColor: null
+        });
+        const link = document.createElement('a');
+        link.download = 'my_magic_sock.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        console.error('Capture failed', err);
+        alert('Screenshot failed — try again or check browser permissions.');
+      } finally {
+        video.style.display = originalDisplay;
+        video.style.zIndex = originalZIndex;
+      }
+    });
+
+    // Сніг
+    const sctx = snowCanvas.getContext('2d');
+    let particles = [];
+    const P_COUNT = Math.round((window.innerWidth / 100) * 6);
+    function initSnow() {
+      particles = [];
+      for (let i = 0; i < P_COUNT; i++) {
+        particles.push({
+          x: Math.random() * snowCanvas.width,
+          y: Math.random() * snowCanvas.height,
+          r: 1 + Math.random() * 3,
+          dx: (Math.random() - 0.5) * 0.5,
+          dy: 0.4 + Math.random() * 1.2,
+          phase: Math.random() * 2 * Math.PI
+        });
+      }
+    }
+    function drawSnow() {
+      sctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+      sctx.fillStyle = 'rgba(255,255,255,0.95)';
+      for (const p of particles) {
+        sctx.beginPath();
+        sctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        sctx.fill();
+      }
+    }
+    function updateSnow(dt) {
+      for (const p of particles) {
+        p.phase += 0.02 + Math.random() * 0.02;
+        p.x += p.dx + Math.sin(p.phase) * 0.3;
+        p.y += p.dy;
+        if (p.y > snowCanvas.height + 10) {
+          p.y = -10;
+          p.x = Math.random() * snowCanvas.width;
+        }
+        if (p.x < -10) p.x = snowCanvas.width + 10;
+        if (p.x > snowCanvas.width + 10) p.x = -10;
+      }
+    }
+    let last = performance.now();
+    function animate(t) {
+      const dt = (t - last) / 1000;
+      last = t;
+      updateSnow(dt);
+      drawSnow();
+      // ФІКС: Без рендеру Three.js тут
+      requestAnimationFrame(animate);
+    }
+
+    // ФІКС: Окремий рендер-луп для Three.js
+    function renderLoop() {
+      renderer.render(scene, camera3);
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Запуск
+    initSnow();
+    animate();
+    renderLoop();  // ФІКС: Запустити
+    startCamera();
+    setTimeout(() => {
+      const guide = document.createElement('div');
+      guide.style.position = 'absolute';
+      guide.style.left = '50%';
+      guide.style.top = '50%';
+      guide.style.transform = 'translate(-50%, -50%)';
+      guide.style.zIndex = '11';
+      guide.style.background = 'rgba(255,250,245,0.9)';
+      guide.style.padding = '10px 16px';
+      guide.style.border = '1px solid var(--accent)';
+      guide.style.borderRadius = '12px';
+      guide.style.fontSize = '15px';
+      guide.style.textAlign = 'center';
+      guide.innerText = 'Point your foot into the camera view — the magic sock will follow 👣';
+      document.body.appendChild(guide);
+      setTimeout(() => {
+        guide.style.transition = 'opacity 500ms';
+        guide.style.opacity = '0';
+        setTimeout(() => {
+          if (guide.parentNode) {
+            document.body.removeChild(guide);
+          }
+        }, 600);
+      }, 4200);
+    }, 1000);
+    
+  } catch (err) {
+    console.error('Init error:', err);
+    alert('Помилка завантаження: ' + err.message + '\nПеревір інтернет, AdBlock та GitHub Pages.');
+  }
+}
+
+initApp();
+</script>
 </body>
 </html>
